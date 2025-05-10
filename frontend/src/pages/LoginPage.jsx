@@ -2,30 +2,33 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/authService";
+import { login as apiLogin } from "../services/authService";
+import { useAuth } from "../context/useAuth";
 
 const LoginPage = () => {
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm();
-  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     try {
-      await login(data);
+      const res = await apiLogin(data);
+      setUser(res.user);
       toast.success("Logged in successfully!");
-      navigate("/");
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
+      navigate("/", { replace: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Login failed");
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Banner */}
       <div className="w-full h-52 bg-amber-300 rounded-b-[4rem] shadow-lg flex items-center justify-center">
         <h1 className="text-4xl font-bold text-white drop-shadow-lg">
           Welcome Back! 👋
@@ -39,7 +42,6 @@ const LoginPage = () => {
           </h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            {/* Email */}
             <div className="relative">
               <i className="ri-mail-line absolute left-3 top-3.5 text-gray-400 text-lg" />
               <input
@@ -62,10 +64,10 @@ const LoginPage = () => {
                 className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
               <i
-                className={`${
+                className={`absolute right-3 top-3.5 text-gray-400 text-lg cursor-pointer ${
                   showPassword ? "ri-eye-off-line" : "ri-eye-line"
-                } absolute right-3 top-3.5 text-gray-400 text-lg cursor-pointer`}
-                onClick={() => setShowPassword(!showPassword)}
+                }`}
+                onClick={() => setShowPassword((v) => !v)}
               />
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1">
@@ -76,9 +78,10 @@ const LoginPage = () => {
 
             <button
               type="submit"
-              className="w-full bg-amber-400 text-white font-medium py-2 rounded-md hover:bg-amber-500 transition"
+              disabled={isSubmitting}
+              className="w-full bg-amber-400 text-white font-medium py-2 rounded-md hover:bg-amber-500 transition disabled:opacity-50"
             >
-              Log In
+              {isSubmitting ? "Logging In..." : "Log In"}
             </button>
           </form>
 
