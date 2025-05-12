@@ -1,10 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import HomePage from "./pages/Home";
+import LoginPage from "./pages/auth/LoginPage";
+import SignupPage from "./pages/auth/SignupPage";
+import RoleBasedRendering from "./components/RoleBasedRendering";
 import { AuthProvider } from "./context/AuthContext";
 import PrivateRoute from "./router/PrivateRoute";
 import PublicRoute from "./router/PublicRoute";
+import ProductUpload from "./pages/admin/ProductUpload";
 
 function App() {
   return (
@@ -31,7 +32,15 @@ function App() {
             path="/"
             element={
               <PrivateRoute>
-                <HomePage />
+                <RoleBasedRendering />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/product-upload"
+            element={
+              <PrivateRoute>
+                <ProductUpload />
               </PrivateRoute>
             }
           />

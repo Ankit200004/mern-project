@@ -1,7 +1,7 @@
 import React from "react";
-import { useAuth } from "../context/useAuth";
+import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../services/authService";
+import { logout } from "../../services/authService";
 
 const HomePage = () => {
   const { user, setUser } = useAuth();
