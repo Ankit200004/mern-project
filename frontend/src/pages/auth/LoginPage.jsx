@@ -28,14 +28,11 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="w-full h-52 bg-amber-300 rounded-b-[4rem] shadow-lg flex items-center justify-center">
-        <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-          Welcome Back! 👋
-        </h1>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center px-4 py-10 bg-gray-50">
+    <div
+      className="h-screen bg-cover bg-center bg-no-repeat flex flex-col"
+      style={{ backgroundImage: "url('/assets/bg-2.png')" }}
+    >
+      <div className="flex-1 flex items-center justify-center px-4 py-10 bg-white/70 backdrop-blur-sm">
         <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-xl">
           <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
             Login to Your Account
@@ -96,8 +93,6 @@ const LoginPage = () => {
           </p>
         </div>
       </div>
-
-      <div className="w-full h-52 bg-amber-300 rounded-t-[4rem] shadow-inner"></div>
     </div>
   );
 };
