@@ -17,8 +17,8 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       getProfile()
         .then((res) => setUser(res.user))
-        .catch(() => logoutUser())
-        .finally(() => setLoading(false)); // <== Must happen AFTER getProfile
+        .catch(logoutUser)
+        .finally(() => setLoading(false)); // Must happen after getProfile
     } else {
       setLoading(false);
     }
@@ -26,9 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ user, setUser, logoutUser, loading }}>
-      {loading ? null : children} {/* Don't render until auth check is done */}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

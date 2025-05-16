@@ -1,13 +1,11 @@
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth.js";
 import HomePage from "../pages/user/Home";
-import AdminHome from "../pages/admin/AdminHome";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 
-const ReeBasedRendering = () => {
+const RoleBasedRendering = () => {
   const { user } = useAuth();
-
   if (!user) return null;
-
-  return user.role === "admin" ? <AdminHome /> : <HomePage />;
+  return user.role === "admin" ? <AdminDashboard /> : <HomePage />;
 };
 
-export default ReeBasedRendering;
+export default RoleBasedRendering;

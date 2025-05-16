@@ -1,49 +1,40 @@
+// src/App.js
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+
+import PublicRoute from "./router/PublicRoute";
+import PrivateRoute from "./router/PrivateRoute";
+import RoleRoute from "./router/RoleRoute";
+
+import Default from "./pages/auth/Default";
 import LoginPage from "./pages/auth/LoginPage";
 import SignupPage from "./pages/auth/SignupPage";
 import RoleBasedRendering from "./components/RoleBasedRendering";
-import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from "./router/PrivateRoute";
-import PublicRoute from "./router/PublicRoute";
 import ProductUpload from "./pages/admin/ProductUpload";
+import Orders from "./pages/admin/Orders";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route
-            path="/login"
-            element={
-              <PublicRoute>
-                <LoginPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <PublicRoute>
-                <SignupPage />
-              </PublicRoute>
-            }
-          />
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <RoleBasedRendering />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/product-upload"
-            element={
-              <PrivateRoute>
-                <ProductUpload />
-              </PrivateRoute>
-            }
-          />
+          {/* Public pages */}
+          <Route element={<PublicRoute />}>
+            <Route path="/" element={<Default />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+          </Route>
+
+          {/* Dashboard: any authenticated user */}
+          <Route element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<RoleBasedRendering />} />
+          </Route>
+
+          {/* Admin-only pages */}
+          <Route element={<RoleRoute roles={["admin"]} />}>
+            <Route path="/product-upload" element={<ProductUpload />} />
+            <Route path="/orders" element={<Orders />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
