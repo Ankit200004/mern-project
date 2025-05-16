@@ -12,6 +12,7 @@ import SignupPage from "./pages/auth/SignupPage";
 import RoleBasedRendering from "./components/RoleBasedRendering";
 import ProductUpload from "./pages/admin/ProductUpload";
 import Orders from "./pages/admin/Orders";
+import Checkout from "./pages/user/Checkout";
 
 function App() {
   return (
@@ -25,12 +26,11 @@ function App() {
             <Route path="/signup" element={<SignupPage />} />
           </Route>
 
-          {/* Dashboard: any authenticated user */}
           <Route element={<PrivateRoute />}>
             <Route path="/dashboard" element={<RoleBasedRendering />} />
+            <Route path="/checkout" element={<Checkout />} />
           </Route>
 
-          {/* Admin-only pages */}
           <Route element={<RoleRoute roles={["admin"]} />}>
             <Route path="/product-upload" element={<ProductUpload />} />
             <Route path="/orders" element={<Orders />} />

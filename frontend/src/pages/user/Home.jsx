@@ -1,164 +1,139 @@
-// // import React from "react";
-// // import { useAuth } from "../../context/useAuth";
-// // import { useNavigate } from "react-router-dom";
-// // import { logout } from "../../services/authService";
-
-// // const HomePage = () => {
-// //   const { user, setUser } = useAuth();
-// //   const navigate = useNavigate();
-
-// //   const handleLogout = () => {
-// //     logout();
-// //     setUser(null);
-// //     navigate("/login");
-// //   };
-
-// //   return (
-// //     <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-// //       <h1 className="text-4xl font-bold mb-4">Welcome, {user?.username} 👋</h1>
-// //       <button
-// //         onClick={handleLogout}
-// //         className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-md"
-// //       >
-// //         Logout
-// //       </button>
-// //     </div>
-// //   );
-// // };
-
-// // export default HomePage;
-
-// import React, { useEffect, useState } from "react";
-// import FrontendProductCard from "../../components/FrontendProductCard";
-// import { getProducts } from "../../services/productService";
-
-// const Home = () => {
-//   const [products, setProducts] = useState([]);
-
-//   const fetchProducts = async () => {
-//     try {
-//       const res = await getProducts();
-//       setProducts(res.data.data || []);
-//     } catch (err) {
-//       console.error("Failed to fetch products:", err);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchProducts();
-//   }, []);
-
-//   return (
-//     <div className="relative min-h-screen overflow-hidden p-4 mt-4.5 ml-4.5">
-//       <div className="bg-white rounded-lg p-3">
-//         <div
-//           className="
-//           absolute
-//           top-0
-//           left-0
-//           h-full
-//           w-3/4
-//           bg-[#E6F1F1]
-//           origin-top-left
-//           transform -skew-x-12
-//           rounded-4xl
-//         "
-//         />
-
-//         <div className="relative z-10">
-//           <h1 className="text-5xl font-bold text-gray-800 mb-4">Zenbites</h1>
-
-//           <div className="flex flex-wrap">
-//             {products.map((product) => (
-//               <FrontendProductCard key={product._id} product={product} />
-//             ))}
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Home;
-
-import React, { useEffect, useState } from "react";
-import Slider from "react-slick";
+import React, { useEffect, useState, useCallback } from "react";
+import { useAuth } from "../../context/useAuth";
+import { useNavigate } from "react-router-dom";
 import FrontendProductCard from "../../components/FrontendProductCard";
+import FeatureSlider from "../../components/FeatureSlider";
+import CartDrawer from "../../components/CartDrawer";
+
 import { getProducts } from "../../services/productService";
 import { getFeatureImages } from "../../services/FeatureService";
+import { logout } from "../../services/authService";
+import {
+  addToCart,
+  getCartItems,
+  updateCartItemQty,
+  deleteCartItem,
+} from "../../services/cartService";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
   const [features, setFeatures] = useState([]);
-
-  const fetchProducts = async () => {
-    try {
-      const res = await getProducts();
-      setProducts(res.data.data || []);
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
-    }
-  };
-
-  const fetchFeatureImages = async () => {
-    try {
-      const res = await getFeatureImages();
-      setFeatures(res.data.data || []);
-    } catch (err) {
-      console.error("Failed to fetch feature images:", err);
-    }
-  };
+  const [showCart, setShowCart] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchProducts();
-    fetchFeatureImages();
+    const fetchData = async () => {
+      try {
+        const [productRes, featureRes] = await Promise.all([
+          getProducts(),
+          getFeatureImages(),
+        ]);
+        setProducts(productRes.data.data || []);
+        setFeatures(featureRes.data.data || []);
+      } catch (err) {
+        console.error("Error loading data", err);
+      }
+    };
+    fetchData();
   }, []);
 
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 600,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    autoplay: true,
-    autoplaySpeed: 3000,
+  const fetchCart = useCallback(async () => {
+    if (!user) return;
+    try {
+      const res = await getCartItems(user._id);
+      setCartItems(res.data.data.items || []);
+    } catch (err) {
+      console.error("Error fetching cart", err);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) fetchCart();
+    else setCartItems([]);
+  }, [user, fetchCart]);
+
+  const handleAddToCart = async (productId) => {
+    if (!user) return navigate("/login");
+    try {
+      await addToCart({ userId: user._id, productId, quantity: 1 });
+      await fetchCart();
+      setShowCart(true);
+    } catch (err) {
+      console.error("Add to cart failed", err);
+    }
+  };
+
+  const handleUpdateQuantity = async (productId, quantity) => {
+    if (!user) return;
+    try {
+      if (quantity <= 0) {
+        await deleteCartItem(user._id, productId);
+      } else {
+        await updateCartItemQty({ userId: user._id, productId, quantity });
+      }
+      await fetchCart();
+    } catch (err) {
+      console.error("Update quantity failed", err);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    navigate("/login");
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden p-4 mt-4.5 ml-4.5">
-      {/* Slider */}
-      <div className="mb-6">
-        <Slider {...sliderSettings}>
-          {features.map((feature) => (
-            <div key={feature._id}>
-              <img
-                src={feature.image}
-                alt="Feature"
-                className="w-full h-64 object-cover rounded-lg"
-              />
-            </div>
-          ))}
-        </Slider>
-      </div>
-
-      {/* Product Section */}
-      <div className="bg-white rounded-lg p-3">
-        <div
-        // className="
-        //   absolute top-0 left-0 h-full w-3/4 bg-[#E6F1F1]
-        //   origin-top-left transform -skew-x-12 rounded-4xl
-        // "
-        />
-
-        <div className="relative z-10">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4">Zenbites</h1>
-          <div className="flex flex-wrap gap-4">
-            {products.map((product) => (
-              <FrontendProductCard key={product._id} product={product} />
-            ))}
+    <div className="min-h-screen bg-[#F7FAFC] text-gray-800">
+      <header className="w-full bg-blue-100/60 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <h1 className="text-lg font-bold text-gray-800">Zenbites</h1>
+          <div className="flex items-center space-x-4">
+            <button className="text-gray-700 text-xl">
+              <i className="ri-search-line"></i>
+            </button>
+            <button
+              onClick={() => setShowCart(true)}
+              className="text-gray-700 text-xl"
+            >
+              <i className="ri-shopping-cart-2-line"></i>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-gray-700 text-xl"
+              title="Logout"
+            >
+              <i className="ri-logout-box-r-line"></i>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
+
+      <CartDrawer
+        showCart={showCart}
+        setShowCart={setShowCart}
+        cartItems={cartItems}
+        handleUpdateQuantity={handleUpdateQuantity}
+      />
+
+      <FeatureSlider features={features} />
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-6">
+          Zenbites
+        </h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+          {products.map((product) => (
+            <FrontendProductCard
+              key={product._id}
+              product={product}
+              onItemAdded={() => handleAddToCart(product._id)}
+            />
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
